@@ -3,24 +3,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-int parse_int(char *str);
+int parse_int(char *str, char *arr , int start);
 int parse_bytes(char *str);
+int parse_list(char *str);
 int main() {
-  char *str = "i42e";
-  char *byte_string = "5:hello";
-  parse_bytes(byte_string);
+  char *str = "i34ei3ei2e2:hi";
+  char res[1024] = {0};
+  int offset = 0;
+  int i = 0;
+  int start  = 0;
+  int len = strlen(str);
+  while (i < len) {
+    if (str[i] == 'i') {
+      int parsed_len = parse_int(&str[offset], res , start);
+      start = strlen(res);
+      offset += parsed_len; 
+      i+=offset;
+      // printf("string: %s\noffset:%d\n", res, offset);
+  
+    } else {
+      i++;
+    }
+  }
+  printf("string:%s\n", res);
+
+  printf("next elem is %c\n", str[offset]);
   return 0;
 }
 
-int parse_int(char *str) {
+int parse_int(char *str, char *arr , int start) {
   int str_len = strlen(str);
-  for (size_t i = 1; i < str_len; i++) {
+  int j = start;
+  size_t i;
+  for (i = 1; i < str_len; i++) {
     if (str[i] == 'e') {
       break;
     } else {
       if (isdigit(str[i]) || str[i] == '-') {
-        printf("%c", str[i]);
+        arr[j++] = str[i];
       } else {
         printf("Error at col:%d '%c' not an integer corrupted string!", i,
                str[i]);
@@ -28,8 +48,8 @@ int parse_int(char *str) {
       }
     }
   }
-  printf("\n");
-  return 0;
+  arr[j] = '\0';
+  return i + 1;
 }
 struct ParseResult {
   int length;
@@ -54,15 +74,17 @@ struct ParseResult get_len(char *str) {
 
 int parse_bytes(char *str) {
   struct ParseResult res = get_len(str);
-
   if (res.message_start == NULL) {
     fprintf(stderr, "Error: Invalid format\n");
     return -1;
   }
 
   char *new_str = res.message_start + 1;
-  for (size_t i = 0; i < res.length; i++) {
+  int i = 0;
+  while (i < res.length) {
     printf("%c", new_str[i]);
+    i++;
   }
-  return 0;
 }
+
+int parse_list(char *str) {}
