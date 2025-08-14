@@ -3,35 +3,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-int parse_int(char *str, char *arr , int start);
+int parse_int(char *str, char *arr, int start);
 int parse_bytes(char *str);
 int parse_list(char *str);
 int main() {
-  char *str = "i34ei3ei2e2:hi";
+  char *str = "i343543534534534534ei33435345345345345343ei23453453450el2:hie";
   char res[1024] = {0};
   int offset = 0;
   int i = 0;
-  int start  = 0;
+  int start = 0;
   int len = strlen(str);
-  while (i < len) {
+  while (i == offset) {
     if (str[i] == 'i') {
-      int parsed_len = parse_int(&str[offset], res , start);
+      int parsed_len = parse_int(&str[offset], res, start);
       start = strlen(res);
-      offset += parsed_len; 
-      i+=offset;
-      // printf("string: %s\noffset:%d\n", res, offset);
-  
+      offset += parsed_len;
+      i = offset;
+      
     } else {
       i++;
     }
   }
-  printf("string:%s\n", res);
+  // printf("string:%s\ni=%d\noffset=%d\noriginal string length=%d\nstr in res
+  // array=%d\nstart=%d\n", res , i, offset, strlen(str), strlen(res) , start);
 
   printf("next elem is %c\n", str[offset]);
   return 0;
 }
 
-int parse_int(char *str, char *arr , int start) {
+int parse_int(char *str, char *arr, int start) {
   int str_len = strlen(str);
   int j = start;
   size_t i;
