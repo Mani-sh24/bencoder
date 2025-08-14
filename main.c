@@ -87,4 +87,6 @@ int parse_bytes(char *str) {
   }
 }
 
-int parse_list(char *str) {}
+int parse_list(char *str) {
+  
+}
