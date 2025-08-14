@@ -4,28 +4,32 @@
 #include <stdlib.h>
 #include <string.h>
 int parse_int(char *str, char *arr, int start);
-int parse_bytes(char *str);
+int parse_bytes(char *str, char *res_buff, int start);
 int parse_list(char *str);
 int main() {
-  char *str = "i343543534534534534ei33435345345345345343ei23453453450el2:hie";
+  char *str = "i44234234234353454352e3:loli435433454353e2:hi";
   char res[1024] = {0};
   int offset = 0;
-  int i = 0;
+
   int start = 0;
   int len = strlen(str);
-  while (i == offset) {
-    if (str[i] == 'i') {
+  while (offset < len) {
+    if (str[offset] == 'i') {
       int parsed_len = parse_int(&str[offset], res, start);
       start = strlen(res);
       offset += parsed_len;
-      i = offset;
-      
+
+    } else if (isdigit(str[offset])) {
+      int parsed_len = parse_bytes(&str[offset], res, start);
+      start = strlen(res);
+      offset += parsed_len;
     } else {
-      i++;
+      break;
     }
   }
-  // printf("string:%s\ni=%d\noffset=%d\noriginal string length=%d\nstr in res
-  // array=%d\nstart=%d\n", res , i, offset, strlen(str), strlen(res) , start);
+  printf("string:%s\nnoffset=%d\noriginal string length=%d\nstr in res "
+         "array=%d\nstart=%d\n",
+         res, offset, strlen(str), strlen(res), start);
 
   printf("next elem is %c\n", str[offset]);
   return 0;
@@ -42,7 +46,7 @@ int parse_int(char *str, char *arr, int start) {
       if (isdigit(str[i]) || str[i] == '-') {
         arr[j++] = str[i];
       } else {
-        printf("Error at col:%d '%c' not an integer corrupted string!", i,
+        printf("\nError at col:%d '%c' not an integer corrupted string!\n", i,
                str[i]);
         break;
       }
@@ -72,7 +76,7 @@ struct ParseResult get_len(char *str) {
   return result;
 }
 
-int parse_bytes(char *str) {
+int parse_bytes(char *str, char *res_buff, int start) {
   struct ParseResult res = get_len(str);
   if (res.message_start == NULL) {
     fprintf(stderr, "Error: Invalid format\n");
@@ -80,11 +84,17 @@ int parse_bytes(char *str) {
   }
 
   char *new_str = res.message_start + 1;
+  int prefix_lenght = res.message_start - str + 1;
+  // printf("new %s\n" , new_str);
   int i = 0;
+  int j = start;
   while (i < res.length) {
-    printf("%c", new_str[i]);
+    res_buff[j++] = new_str[i];
     i++;
   }
+  res_buff[j] = '\0';
+  // printf("\n");
+  return prefix_lenght + res.length; // total length
 }
 
 int parse_list(char *str) {}
