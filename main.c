@@ -5,9 +5,9 @@
 #include <string.h>
 int parse_int(char *str, char *arr, int start);
 int parse_bytes(char *str, char *res_buff, int start);
-int parse_list(char *str);
+int parse_list(char *str, char *resbuf, int start);
 int main() {
-  char *str = "i44234234234353454352e3:loli435433454353e2:hi";
+  char *str = "l1:ali42el1:me5:helloe1:b1:ce";
   char res[1024] = {0};
   int offset = 0;
 
@@ -23,15 +23,18 @@ int main() {
       int parsed_len = parse_bytes(&str[offset], res, start);
       start = strlen(res);
       offset += parsed_len;
+    } else if (str[offset] == 'l') {
+      int parsed_len = parse_list(&str[offset], res, start);
+      start = strlen(res);
+      offset += parsed_len;
     } else {
       break;
     }
   }
-  printf("string:%s\nnoffset=%d\noriginal string length=%d\nstr in res "
+  printf("string:%s\noffset=%d\noriginal string length=%d\nstr in res "
          "array=%d\nstart=%d\n",
          res, offset, strlen(str), strlen(res), start);
 
-  printf("next elem is %c\n", str[offset]);
   return 0;
 }
 
@@ -94,7 +97,39 @@ int parse_bytes(char *str, char *res_buff, int start) {
   }
   res_buff[j] = '\0';
   // printf("\n");
-  return prefix_lenght + res.length; // total length
+  int total_len = prefix_lenght + res.length;
+  return total_len;
 }
 
-int parse_list(char *str) {}
+int parse_list(char *str, char *resbuf, int start) {
+  int i = 1;
+  while (i < strlen(str)) // do str-start to get sliced remaining str lenght
+  {
+    if (str[i] == 'e') {
+      i++;
+      break;
+    } else if (str[i] == 'i') {
+      int parsed_len = parse_int(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else if (isdigit(str[i])) {
+      int parsed_len = parse_bytes(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else if (str[i] == 'l') {
+      int parsed_len = parse_list(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else {
+      fprintf(stderr, "Invalid format at pos%d char%c\n", i, str[i]);
+    }
+  }
+  int consumed = i;
+  return consumed; // bytes consumed
+}

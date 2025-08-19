@@ -1,2 +1,5 @@
 a.out
 test.c
+.vscode/
+# Ignore the launch.json file in .vscode folder
+.vscode/settings.json
