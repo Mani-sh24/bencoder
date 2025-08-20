@@ -7,7 +7,7 @@ int parse_int(char *str, char *arr, int start);
 int parse_bytes(char *str, char *res_buff, int start);
 int parse_list(char *str, char *resbuf, int start);
 int main() {
-  char *str = "l1:ali42el1:me5:helloe1:b1:ce";
+  char *str = "l4:spam4:eggsi42e7:testingl5:applei-45e5:grapei1234567890ee3:foo3:barl3:baz3:quxei-999ee";
   char res[1024] = {0};
   int offset = 0;
 
@@ -85,26 +85,27 @@ int parse_bytes(char *str, char *res_buff, int start) {
     fprintf(stderr, "Error: Invalid format\n");
     return -1;
   }
-
   char *new_str = res.message_start + 1;
   int prefix_lenght = res.message_start - str + 1;
-  // printf("new %s\n" , new_str);
   int i = 0;
   int j = start;
+  res_buff[j++] = '"';
   while (i < res.length) {
     res_buff[j++] = new_str[i];
     i++;
   }
-  res_buff[j] = '\0';
-  // printf("\n");
+  res_buff[j++] = '"';
+  res_buff[j++] = '\0';
   int total_len = prefix_lenght + res.length;
   return total_len;
 }
 
 int parse_list(char *str, char *resbuf, int start) {
   int i = 1;
+  resbuf[start++] = '[';
   while (i < strlen(str)) // do str-start to get sliced remaining str lenght
   {
+    
     if (str[i] == 'e') {
       i++;
       break;
@@ -130,6 +131,8 @@ int parse_list(char *str, char *resbuf, int start) {
       fprintf(stderr, "Invalid format at pos%d char%c\n", i, str[i]);
     }
   }
+  resbuf[start++] = ']';
+  resbuf[start] = '\0';
   int consumed = i;
   return consumed; // bytes consumed
 }
