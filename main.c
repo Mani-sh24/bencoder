@@ -8,15 +8,41 @@ int parse_int(char *str, char *arr, int start);
 int parse_bytes(char *str, char *res_buff, int start);
 int parse_list(char *str, char *resbuf, int start);
 int parse_dict(char *str, char *resbuf, int start);
-int main() {
-  char *str = "l4:spam4:eggsi42e7:testingl5:applei-45e5:grapei1234567890ee3:"
-              "foo3:barl3:baz3:quxei-999eed2:hii42eli43e2:43ee";
+int main(int argc, char *argv[]) {
+  // char *str = "l4:spam4:eggsi42e7:testingl5:applei-45e5:grapei1234567890ee3:"
+  // "foo3:barl3:baz3:quxei-999eed2:hii42eli43e2:43ee";
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+    return 1;
+  }
 
-  char res[MIN_BUFF] = {0};
+  FILE *file = fopen(argv[1], "r");
+  if (file == NULL) {
+    fprintf(stderr, "Error opening file '%s': %s\n", argv[1]);
+    return 1;
+  }
+
+  fseek(file, 0, SEEK_END);
+  long file_size = ftell(file);
+  rewind(file);
+
+  char *str = malloc(file_size + 1); // input string 
+  if (str == NULL) {
+      fprintf(stderr, "Failed to allocate memory for file content.\n");
+      fclose(file);
+      return 1;
+  }
+  // reading file
+  fread(str, 1, file_size, file);
+  str[file_size] = '\0';
+  fclose(file);
+
+  int res_capacity = MIN_BUFF;
+  char res[1024*10] ={0}; 
   int offset = 0;
-
   int start = 0;
   int len = strlen(str);
+
   while (offset < len) {
     if (str[offset] == 'i') {
       int parsed_len = parse_int(&str[offset], res, start);
@@ -39,11 +65,12 @@ int main() {
       break;
     }
   }
-  printf("String:\n%s\n" ,res);
+  printf("String:\n%s\n", res);
   // LOGGING!
   // printf("string:%s\noffset=%d\noriginal string length=%d\nstr in res "
   //        "array=%d\nstart=%d\n",
   //        res, offset, strlen(str), strlen(res), start);
+  free(str);
 
   return 0;
 }
