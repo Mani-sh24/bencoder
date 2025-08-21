@@ -3,12 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define MIN_BUFF 1024
 int parse_int(char *str, char *arr, int start);
 int parse_bytes(char *str, char *res_buff, int start);
 int parse_list(char *str, char *resbuf, int start);
+int parse_dict(char *str, char *resbuf, int start);
 int main() {
-  char *str = "l4:spam4:eggsi42e7:testingl5:applei-45e5:grapei1234567890ee3:foo3:barl3:baz3:quxei-999ee";
-  char res[1024] = {0};
+  char *str = "l4:spam4:eggsi42e7:testingl5:applei-45e5:grapei1234567890ee3:"
+              "foo3:barl3:baz3:quxei-999eed2:hii42eli43e2:43ee";
+
+  char res[MIN_BUFF] = {0};
   int offset = 0;
 
   int start = 0;
@@ -27,13 +31,19 @@ int main() {
       int parsed_len = parse_list(&str[offset], res, start);
       start = strlen(res);
       offset += parsed_len;
+    } else if (str[offset] == 'd') {
+      int parsed_len = parse_dict(&str[offset], res, start);
+      start = strlen(res);
+      offset += parsed_len;
     } else {
       break;
     }
   }
-  printf("string:%s\noffset=%d\noriginal string length=%d\nstr in res "
-         "array=%d\nstart=%d\n",
-         res, offset, strlen(str), strlen(res), start);
+  printf("String:\n%s\n" ,res);
+  // LOGGING!
+  // printf("string:%s\noffset=%d\noriginal string length=%d\nstr in res "
+  //        "array=%d\nstart=%d\n",
+  //        res, offset, strlen(str), strlen(res), start);
 
   return 0;
 }
@@ -105,7 +115,7 @@ int parse_list(char *str, char *resbuf, int start) {
   resbuf[start++] = '[';
   while (i < strlen(str)) // do str-start to get sliced remaining str lenght
   {
-    
+
     if (str[i] == 'e') {
       i++;
       break;
@@ -129,10 +139,54 @@ int parse_list(char *str, char *resbuf, int start) {
       start = strlen(resbuf);
     } else {
       fprintf(stderr, "Invalid format at pos%d char%c\n", i, str[i]);
+      break;
     }
   }
   resbuf[start++] = ']';
   resbuf[start] = '\0';
   int consumed = i;
   return consumed; // bytes consumed
+}
+
+int parse_dict(char *str, char *resbuf, int start) {
+  int i = 1;
+  resbuf[start++] = '{';
+  while (i < strlen(str)) // do str-start to get sliced remaining str lenght
+  {
+    if (str[i] == 'e') {
+      i++;
+      break;
+    } else if (str[i] == 'i') {
+      int parsed_len = parse_int(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else if (isdigit(str[i])) {
+      int parsed_len = parse_bytes(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else if (str[i] == 'l') {
+      int parsed_len = parse_list(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else if (str[i] == 'd') {
+      int parsed_len = parse_dict(&str[i], resbuf, start);
+      i += parsed_len;
+      if (parsed_len <= 0)
+        return -1;
+      start = strlen(resbuf);
+    } else {
+      fprintf(stderr, "Invalid format at pos%d char%c\n", i, str[i]);
+      break;
+    }
+  }
+  resbuf[start++] = '}';
+  resbuf[start] = '\0';
+  int consumed = i;
+  return consumed;
 }
